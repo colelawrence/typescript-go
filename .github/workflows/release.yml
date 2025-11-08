@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   generate-version:
     runs-on: ubuntu-latest
@@ -94,6 +98,7 @@ jobs:
           name: tsgo-${{ matrix.name }}
           path: tsgo-*.tar.gz
           retention-days: 1
+          if-no-files-found: error
 
   release:
     needs: [generate-version, build]
@@ -117,34 +122,39 @@ jobs:
           sha256sum tsgo-*.tar.gz > checksums.txt
           cat checksums.txt
       
+      - name: Compose release body
+        run: |
+          cat > dist/release_body.md <<'EOF'
+          TypeScript Go binaries with TS2742 error disabled.
+          
+          Built from commit ${{ github.sha }}
+          
+          ## Installation with mise
+          
+          Add to your `.mise.toml`:
+          
+          ```toml
+          [tools."http:tsgo".platforms]
+          macos-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-arm64.tar.gz" }
+          linux-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-x64.tar.gz" }
+          windows-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-windows-x64.tar.gz" }
+          macos-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-x64.tar.gz" }
+          linux-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-arm64.tar.gz" }
+          ```
+          
+          ## Checksums
+          
+          ```text
+          EOF
+          cat dist/checksums.txt >> dist/release_body.md
+          echo '```' >> dist/release_body.md
+      
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.generate-version.outputs.version }}
           name: Release ${{ needs.generate-version.outputs.version }}
-          body: |
-            TypeScript Go binaries with TS2742 error disabled.
-            
-            Built from commit ${{ github.sha }}
-            
-            ## Installation with mise
-            
-            Add to your `.mise.toml`:
-            
-            ```toml
-            [tools."http:tsgo".platforms]
-            macos-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-arm64.tar.gz" }
-            linux-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-x64.tar.gz" }
-            windows-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-windows-x64.tar.gz" }
-            macos-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-x64.tar.gz" }
-            linux-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-arm64.tar.gz" }
-            ```
-            
-            ## Checksums
-            
-            ```
-            $(cat dist/checksums.txt)
-            ```
+          body_path: dist/release_body.md
           files: |
             dist/tsgo-*.tar.gz
             dist/checksums.txt
