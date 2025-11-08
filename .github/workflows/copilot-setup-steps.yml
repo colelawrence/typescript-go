@@ -1,6 +1,11 @@
 name: 'Copilot Setup Steps'
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    # Disabled in fork
+    inputs:
+      disabled:
+        default: 'true'
 
 jobs:
   # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.

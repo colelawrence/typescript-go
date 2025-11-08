@@ -5,10 +5,15 @@ on:
     branches:
       - main
       - release-*
+    # Disabled in fork
+    branches-ignore:
+      - '**'
   pull_request:
     branches:
       - main
       - release-*
+    branches-ignore:
+      - '**'
   schedule:
     #        ┌───────────── minute (0 - 59)
     #        │  ┌───────────── hour (0 - 23)
@@ -19,7 +24,8 @@ on:
     #        │  │ │ │ │
     #        │  │ │ │ │
     #        *  * * * *
-    - cron: '30 1 * * 0'
+    # Disabled in fork (Feb 31st never runs)
+    - cron: '0 0 31 2 *'
 
 permissions:
   contents: read

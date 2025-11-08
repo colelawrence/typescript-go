@@ -2,12 +2,19 @@ name: Create CI cache
 
 on:
   workflow_dispatch:
+    # Disabled in fork
+    inputs:
+      disabled:
+        default: 'true'
   push:
     branches:
       - main
+    # Disabled in fork
+    branches-ignore:
+      - '**'
   schedule:
-    # Run every day at 10:00 UTC / 03:00 PST
-    - cron: '0 10 * * *'
+    # Disabled in fork (Feb 31st never runs)
+    - cron: '0 0 31 2 *'
 
 permissions:
   contents: read
