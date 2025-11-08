@@ -48,34 +48,34 @@ jobs:
           - goos: linux
             goarch: arm64
             name: linux-arm64
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25.0'
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build binary for ${{ matrix.name }}
         run: |
           mkdir -p dist/tsgo-${{ matrix.name }}
-          
+
           # Set binary name
           BINARY_NAME="tsgo"
           if [ "${{ matrix.goos }}" = "windows" ]; then
             BINARY_NAME="tsgo.exe"
           fi
-          
+
           # Build the binary
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build \
             -trimpath \
@@ -83,16 +83,16 @@ jobs:
             -tags=noembed,release \
             -o "dist/tsgo-${{ matrix.name }}/$BINARY_NAME" \
             ./cmd/tsgo
-          
+
           # Copy lib files
           cp internal/bundled/libs/*.d.ts "dist/tsgo-${{ matrix.name }}/"
-          
+
           # Create tarball
           tar -czf "tsgo-${{ needs.generate-version.outputs.version }}-${{ matrix.name }}.tar.gz" \
             -C "dist/tsgo-${{ matrix.name }}" .
-          
+
           echo "✓ Built tsgo-${{ needs.generate-version.outputs.version }}-${{ matrix.name }}.tar.gz"
-      
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -106,34 +106,34 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
           pattern: tsgo-*
           merge-multiple: true
-      
+
       - name: Generate checksums
         run: |
           cd dist
           sha256sum tsgo-*.tar.gz > checksums.txt
           cat checksums.txt
-      
+
       - name: Compose release body
         run: |
           cat > dist/release_body.md <<'EOF'
           TypeScript Go binaries with TS2742 error disabled.
-          
+
           Built from commit ${{ github.sha }}
-          
+
           ## Installation with mise
-          
+
           Add to your `.mise.toml`:
-          
+
           ```toml
           [tools."http:tsgo".platforms]
           macos-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-arm64.tar.gz" }
@@ -142,14 +142,14 @@ jobs:
           macos-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-x64.tar.gz" }
           linux-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-arm64.tar.gz" }
           ```
-          
+
           ## Checksums
-          
+
           ```text
           EOF
           cat dist/checksums.txt >> dist/release_body.md
           echo '```' >> dist/release_body.md
-      
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
