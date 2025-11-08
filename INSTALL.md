@@ -8,12 +8,11 @@ This fork of TypeScript Go disables the TS2742 error and publishes pre-built bin
 
 ```toml
 [tools."http:tsgo".platforms]
-macos-x64 = { url = "https://github.com/colelawrence/typescript-go/releases/latest/download/tsgo-latest-macos-x64.tar.gz" }
+# Most common platforms
 macos-arm64 = { url = "https://github.com/colelawrence/typescript-go/releases/latest/download/tsgo-latest-macos-arm64.tar.gz" }
 linux-x64 = { url = "https://github.com/colelawrence/typescript-go/releases/latest/download/tsgo-latest-linux-x64.tar.gz" }
-linux-arm64 = { url = "https://github.com/colelawrence/typescript-go/releases/latest/download/tsgo-latest-linux-arm64.tar.gz" }
 windows-x64 = { url = "https://github.com/colelawrence/typescript-go/releases/latest/download/tsgo-latest-windows-x64.tar.gz" }
-windows-arm64 = { url = "https://github.com/colelawrence/typescript-go/releases/latest/download/tsgo-latest-windows-arm64.tar.gz" }
+# Also available: macos-x64, linux-arm64
 ```
 
 Or pin to a specific version (see [Releases](https://github.com/colelawrence/typescript-go/releases)):
@@ -34,12 +33,14 @@ tsgo --version
 
 Download the tarball for your platform from the [Releases page](https://github.com/colelawrence/typescript-go/releases):
 
-- **macOS (Intel)**: `tsgo-VERSION-macos-x64.tar.gz`
+**Most Common:**
 - **macOS (Apple Silicon)**: `tsgo-VERSION-macos-arm64.tar.gz`
 - **Linux (x64)**: `tsgo-VERSION-linux-x64.tar.gz`
-- **Linux (ARM64)**: `tsgo-VERSION-linux-arm64.tar.gz`
 - **Windows (x64)**: `tsgo-VERSION-windows-x64.tar.gz`
-- **Windows (ARM64)**: `tsgo-VERSION-windows-arm64.tar.gz`
+
+**Also Available:**
+- **macOS (Intel)**: `tsgo-VERSION-macos-x64.tar.gz`
+- **Linux (ARM64)**: `tsgo-VERSION-linux-arm64.tar.gz`
 
 Extract and add to your PATH:
 

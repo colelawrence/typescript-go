@@ -7,10 +7,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-release:
+  generate-version:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Generate timestamp version
+        id: version
+        run: |
+          # Format: 0.YYYYMMDD.HHMMSS (valid semver)
+          VERSION=$(date -u +"0.%Y%m%d.%H%M%S")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+  build:
+    needs: generate-version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Most common platforms
+          - goos: darwin
+            goarch: arm64
+            name: macos-arm64
+          - goos: linux
+            goarch: amd64
+            name: linux-x64
+          - goos: windows
+            goarch: amd64
+            name: windows-x64
+          # Less common but still useful
+          - goos: darwin
+            goarch: amd64
+            name: macos-x64
+          - goos: linux
+            goarch: arm64
+            name: linux-arm64
     
     steps:
       - uses: actions/checkout@v4
@@ -29,58 +61,55 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Generate timestamp version
-        id: version
+      - name: Build binary for ${{ matrix.name }}
         run: |
-          # Format: 0.YYYYMMDD.HHMMSS (valid semver)
-          VERSION=$(date -u +"0.%Y%m%d.%H%M%S")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+          mkdir -p dist/tsgo-${{ matrix.name }}
+          
+          # Set binary name
+          BINARY_NAME="tsgo"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME="tsgo.exe"
+          fi
+          
+          # Build the binary
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build \
+            -trimpath \
+            -ldflags="-s -w -X github.com/microsoft/typescript-go/internal/core.version=${{ needs.generate-version.outputs.version }}" \
+            -tags=noembed,release \
+            -o "dist/tsgo-${{ matrix.name }}/$BINARY_NAME" \
+            ./cmd/tsgo
+          
+          # Copy lib files
+          cp internal/bundled/libs/*.d.ts "dist/tsgo-${{ matrix.name }}/"
+          
+          # Create tarball
+          tar -czf "tsgo-${{ needs.generate-version.outputs.version }}-${{ matrix.name }}.tar.gz" \
+            -C "dist/tsgo-${{ matrix.name }}" .
+          
+          echo "✓ Built tsgo-${{ needs.generate-version.outputs.version }}-${{ matrix.name }}.tar.gz"
       
-      - name: Build cross-platform binaries
-        run: |
-          mkdir -p dist
-          
-          platforms=(
-            "darwin:amd64:macos-x64"
-            "darwin:arm64:macos-arm64"
-            "linux:amd64:linux-x64"
-            "linux:arm64:linux-arm64"
-            "windows:amd64:windows-x64"
-            "windows:arm64:windows-arm64"
-          )
-          
-          for platform in "${platforms[@]}"; do
-            IFS=':' read -r GOOS GOARCH NAME <<< "$platform"
-            
-            echo "Building for $NAME (GOOS=$GOOS GOARCH=$GOARCH)..."
-            
-            OUTPUT_DIR="dist/tsgo-$NAME"
-            mkdir -p "$OUTPUT_DIR"
-            
-            # Set binary name
-            BINARY_NAME="tsgo"
-            if [ "$GOOS" = "windows" ]; then
-              BINARY_NAME="tsgo.exe"
-            fi
-            
-            # Build the binary
-            GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build \
-              -trimpath \
-              -ldflags="-s -w -X github.com/microsoft/typescript-go/internal/core.version=${{ steps.version.outputs.version }}" \
-              -tags=noembed,release \
-              -o "$OUTPUT_DIR/$BINARY_NAME" \
-              ./cmd/tsgo
-            
-            # Copy lib files
-            cp -r internal/bundled/libs/*.d.ts "$OUTPUT_DIR/"
-            
-            # Create tarball
-            tar -czf "dist/tsgo-${{ steps.version.outputs.version }}-$NAME.tar.gz" \
-              -C "dist/tsgo-$NAME" .
-            
-            echo "✓ Built tsgo-${{ steps.version.outputs.version }}-$NAME.tar.gz"
-          done
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsgo-${{ matrix.name }}
+          path: tsgo-*.tar.gz
+          retention-days: 1
+
+  release:
+    needs: [generate-version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: tsgo-*
+          merge-multiple: true
       
       - name: Generate checksums
         run: |
@@ -91,8 +120,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: Release ${{ steps.version.outputs.version }}
+          tag_name: ${{ needs.generate-version.outputs.version }}
+          name: Release ${{ needs.generate-version.outputs.version }}
           body: |
             TypeScript Go binaries with TS2742 error disabled.
             
@@ -104,12 +133,11 @@ jobs:
             
             ```toml
             [tools."http:tsgo".platforms]
-            macos-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-macos-x64.tar.gz" }
-            macos-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-macos-arm64.tar.gz" }
-            linux-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-linux-x64.tar.gz" }
-            linux-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-linux-arm64.tar.gz" }
-            windows-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-windows-x64.tar.gz" }
-            windows-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-windows-arm64.tar.gz" }
+            macos-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-arm64.tar.gz" }
+            linux-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-x64.tar.gz" }
+            windows-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-windows-x64.tar.gz" }
+            macos-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-macos-x64.tar.gz" }
+            linux-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate-version.outputs.version }}/tsgo-${{ needs.generate-version.outputs.version }}-linux-arm64.tar.gz" }
             ```
             
             ## Checksums
