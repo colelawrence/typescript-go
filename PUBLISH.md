@@ -1,6 +1,6 @@
 # Publishing Guide
 
-This guide explains how to publish a patched version of TypeScript Go to npm.
+This guide explains how to build and release TypeScript Go binaries.
 
 ## Understanding the Build System
 
@@ -70,16 +70,11 @@ npm publish native-preview.tgz --tag patched --access public
 
 ## GitHub Actions Workflow
 
-The repository includes a `.github/workflows/publish.yml` workflow for one-click publishing:
-
-1. Go to Actions → Publish Package
-2. Click "Run workflow"
-3. Enter version (e.g., `0.1.0-patch.1`)
-4. Enter npm tag (e.g., `patched`)
-5. Click "Run workflow"
-
-**Prerequisites:**
-- Set `NPM_TOKEN` secret in repository settings with your npm publish token
+The repository includes a `.github/workflows/release.yml` workflow that automatically:
+- Builds cross-platform binaries on push to main
+- Creates GitHub releases with timestamp tags
+- Uploads tarballs for each platform
+- No npm publishing needed!
 
 ## Versioning Strategy
 

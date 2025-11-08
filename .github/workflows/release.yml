@@ -1,0 +1,123 @@
+name: Release Binaries
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate timestamp version
+        id: version
+        run: |
+          VERSION=$(date -u +"%Y.%m.%d-%H%M%S")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
+      - name: Build cross-platform binaries
+        run: |
+          mkdir -p dist
+          
+          platforms=(
+            "darwin:amd64:macos-x64"
+            "darwin:arm64:macos-arm64"
+            "linux:amd64:linux-x64"
+            "linux:arm64:linux-arm64"
+            "windows:amd64:windows-x64"
+            "windows:arm64:windows-arm64"
+          )
+          
+          for platform in "${platforms[@]}"; do
+            IFS=':' read -r GOOS GOARCH NAME <<< "$platform"
+            
+            echo "Building for $NAME (GOOS=$GOOS GOARCH=$GOARCH)..."
+            
+            OUTPUT_DIR="dist/tsgo-$NAME"
+            mkdir -p "$OUTPUT_DIR"
+            
+            # Set binary name
+            BINARY_NAME="tsgo"
+            if [ "$GOOS" = "windows" ]; then
+              BINARY_NAME="tsgo.exe"
+            fi
+            
+            # Build the binary
+            GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build \
+              -trimpath \
+              -ldflags="-s -w -X github.com/microsoft/typescript-go/internal/core.version=${{ steps.version.outputs.version }}" \
+              -tags=noembed,release \
+              -o "$OUTPUT_DIR/$BINARY_NAME" \
+              ./cmd/tsgo
+            
+            # Copy lib files
+            cp -r internal/bundled/libs/*.d.ts "$OUTPUT_DIR/"
+            
+            # Create tarball
+            tar -czf "dist/tsgo-${{ steps.version.outputs.version }}-$NAME.tar.gz" \
+              -C "dist/tsgo-$NAME" .
+            
+            echo "✓ Built tsgo-${{ steps.version.outputs.version }}-$NAME.tar.gz"
+          done
+      
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum tsgo-*.tar.gz > checksums.txt
+          cat checksums.txt
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            TypeScript Go binaries with TS2742 error disabled.
+            
+            Built from commit ${{ github.sha }}
+            
+            ## Installation with mise
+            
+            Add to your `.mise.toml`:
+            
+            ```toml
+            [tools."http:tsgo".platforms]
+            macos-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-macos-x64.tar.gz" }
+            macos-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-macos-arm64.tar.gz" }
+            linux-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-linux-x64.tar.gz" }
+            linux-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-linux-arm64.tar.gz" }
+            windows-x64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-windows-x64.tar.gz" }
+            windows-arm64 = { url = "https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.version }}/tsgo-${{ steps.version.outputs.version }}-windows-arm64.tar.gz" }
+            ```
+            
+            ## Checksums
+            
+            ```
+            $(cat dist/checksums.txt)
+            ```
+          files: |
+            dist/tsgo-*.tar.gz
+            dist/checksums.txt
+          draft: false
+          prerelease: false
