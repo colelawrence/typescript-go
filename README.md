@@ -1,3 +1,12 @@
+# TypeScript Go - Patched Fork
+
+> **Note:** This is a fork of [microsoft/typescript-go](https://github.com/microsoft/typescript-go) with a single patch applied:
+> **TS2742 error disabled** - Removes the "inferred type cannot be named without a reference" error that blocks compilation when types reference packages in `node_modules`.
+>
+> Pre-built binaries are available via GitHub Releases. See [INSTALL.md](INSTALL.md) for usage with mise or direct downloads.
+
+---
+
 # TypeScript 7
 
 [Not sure what this is? Read the announcement post!](https://devblogs.microsoft.com/typescript/typescript-native-port/)
