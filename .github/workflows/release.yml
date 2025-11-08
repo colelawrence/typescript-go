@@ -32,7 +32,8 @@ jobs:
       - name: Generate timestamp version
         id: version
         run: |
-          VERSION=$(date -u +"%Y.%m.%d-%H%M%S")
+          # Format: 0.YYYYMMDD.HHMMSS (valid semver)
+          VERSION=$(date -u +"0.%Y%m%d.%H%M%S")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
       

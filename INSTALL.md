@@ -20,7 +20,7 @@ Or pin to a specific version (see [Releases](https://github.com/colelawrence/typ
 
 ```toml
 [tools."http:tsgo".platforms]
-macos-arm64 = { url = "https://github.com/colelawrence/typescript-go/releases/download/2024.11.08-165500/tsgo-2024.11.08-165500-macos-arm64.tar.gz" }
+macos-arm64 = { url = "https://github.com/colelawrence/typescript-go/releases/download/0.20241108.165500/tsgo-0.20241108.165500-macos-arm64.tar.gz" }
 ```
 
 Then run:
@@ -65,6 +65,6 @@ This allows TypeScript code that references types from node_modules to compile w
 
 ## Version Format
 
-Releases use timestamp versioning: `YYYY.MM.DD-HHMMSS` (UTC)
+Releases use semver-compatible timestamp versioning: `0.YYYYMMDD.HHMMSS` (UTC)
 
-Example: `2024.11.08-165500` = November 8, 2024 at 16:55:00 UTC
+Example: `0.20241108.165500` = November 8, 2024 at 16:55:00 UTC
