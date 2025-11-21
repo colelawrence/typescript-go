@@ -2,19 +2,13 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
     # Disabled in fork - only run on upstream
     branches-ignore:
       - '**'
   pull_request:
-    branches:
-      - main
     branches-ignore:
       - '**'
   merge_group:
-    branches:
-      - main
     branches-ignore:
       - '**'
 
