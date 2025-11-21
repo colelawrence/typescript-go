@@ -11,10 +11,6 @@ on:
       - 'go.mod'
       - 'go.sum'
       - '.github/workflows/release.yml'
-    paths-ignore:
-      # Ignore documentation changes
-      - '**.md'
-      - 'docs/**'
   workflow_dispatch:
 
 concurrency:
