@@ -22,6 +22,7 @@ import (
 
 const (
 	autoImportsCmd              baselineCommand = "Auto Imports"
+	callHierarchyCmd            baselineCommand = "Call Hierarchy"
 	documentHighlightsCmd       baselineCommand = "documentHighlights"
 	findAllReferencesCmd        baselineCommand = "findAllReferences"
 	goToDefinitionCmd           baselineCommand = "goToDefinition"
@@ -33,13 +34,19 @@ const (
 	renameCmd                   baselineCommand = "findRenameLocations"
 	signatureHelpCmd            baselineCommand = "SignatureHelp"
 	smartSelectionCmd           baselineCommand = "Smart Selection"
+	codeLensesCmd               baselineCommand = "Code Lenses"
 )
 
 type baselineCommand string
 
 func (f *FourslashTest) addResultToBaseline(t *testing.T, command baselineCommand, actual string) {
-	b, ok := f.baselines[command]
-	if !ok {
+	var b *strings.Builder
+	if f.testData.isStateBaseliningEnabled() {
+		// Single baseline for all commands
+		b = &f.stateBaseline.baseline
+	} else if builder, ok := f.baselines[command]; ok {
+		b = builder
+	} else {
 		f.baselines[command] = &strings.Builder{}
 		b = f.baselines[command]
 	}
@@ -66,6 +73,8 @@ func getBaselineExtension(command baselineCommand) string {
 	switch command {
 	case quickInfoCmd, signatureHelpCmd, smartSelectionCmd, inlayHintsCmd, nonSuggestionDiagnosticsCmd:
 		return "baseline"
+	case callHierarchyCmd:
+		return "callHierarchy.txt"
 	case autoImportsCmd:
 		return "baseline.md"
 	default:
@@ -85,6 +94,21 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 		return baseline.Options{
 			Subfolder:   subfolder,
 			IsSubmodule: true,
+		}
+	case callHierarchyCmd:
+		return baseline.Options{
+			Subfolder:   subfolder,
+			IsSubmodule: true,
+			DiffFixupOld: func(s string) string {
+				// TypeScript baselines have "/tests/cases/fourslash/" prefix in file paths
+				// Handle /server/ subdirectory - need to remove both prefixes
+				s = strings.ReplaceAll(s, "/tests/cases/fourslash/server/", "/")
+				s = strings.ReplaceAll(s, "/tests/cases/fourslash/", "/")
+				// SymbolKind enum differences between Strada and tsgo
+				s = strings.ReplaceAll(s, "kind: getter", "kind: property")
+				s = strings.ReplaceAll(s, "kind: script", "kind: file")
+				return s
+			},
 		}
 	case renameCmd:
 		return baseline.Options{
@@ -334,6 +358,7 @@ type baselineFourslashLocationsOptions struct {
 
 	startMarkerPrefix func(span documentSpan) *string
 	endMarkerSuffix   func(span documentSpan) *string
+	getLocationData   func(span documentSpan) string
 
 	additionalSpan *documentSpan
 }
@@ -384,7 +409,7 @@ func (f *FourslashTest) getBaselineForGroupedSpansWithFileContents(groupedRanges
 			return nil
 		}
 
-		content, ok := f.vfs.ReadFile(path)
+		content, ok := f.textOfFile(path)
 		if !ok {
 			// !!! error?
 			return nil
@@ -416,7 +441,7 @@ func (f *FourslashTest) getBaselineForGroupedSpansWithFileContents(groupedRanges
 	// already added the file to the baseline.
 	if options.additionalSpan != nil && !foundAdditionalLocation {
 		fileName := options.additionalSpan.uri.FileName()
-		if content, ok := f.vfs.ReadFile(fileName); ok {
+		if content, ok := f.textOfFile(fileName); ok {
 			baselineEntries = append(
 				baselineEntries,
 				f.getBaselineContentForFile(fileName, content, []documentSpan{*options.additionalSpan}, spanToContextId, options),
@@ -430,7 +455,7 @@ func (f *FourslashTest) getBaselineForGroupedSpansWithFileContents(groupedRanges
 	if !foundMarker && options.marker != nil {
 		// If we didn't find the marker in any file, we need to add it.
 		markerFileName := options.marker.FileName()
-		if content, ok := f.vfs.ReadFile(markerFileName); ok {
+		if content, ok := f.textOfFile(markerFileName); ok {
 			baselineEntries = append(baselineEntries, f.getBaselineContentForFile(markerFileName, content, nil, spanToContextId, options))
 		}
 	}
@@ -438,6 +463,13 @@ func (f *FourslashTest) getBaselineForGroupedSpansWithFileContents(groupedRanges
 	// !!! skipDocumentContainingOnlyMarker
 
 	return strings.Join(baselineEntries, "\n\n")
+}
+
+func (f *FourslashTest) textOfFile(fileName string) (string, bool) {
+	if _, ok := f.openFiles[fileName]; ok {
+		return f.getScriptInfo(fileName).content, true
+	}
+	return f.vfs.ReadFile(fileName)
 }
 
 type baselineDetail struct {
@@ -482,8 +514,12 @@ func (f *FourslashTest) getBaselineContentForFile(
 		}
 
 		textSpanIndex := len(details)
+		startMarker := "[|"
+		if options.getLocationData != nil {
+			startMarker += options.getLocationData(span)
+		}
 		details = append(details,
-			&baselineDetail{pos: span.textSpan.Start, positionMarker: "[|", span: &span, kind: "textStart"},
+			&baselineDetail{pos: span.textSpan.Start, positionMarker: startMarker, span: &span, kind: "textStart"},
 			&baselineDetail{pos: span.textSpan.End, positionMarker: core.OrElse(options.endMarker, "|]"), span: &span, kind: "textEnd"},
 		)
 
@@ -884,4 +920,8 @@ func (t *textWithContext) getIndex(i any) *int {
 
 func codeFence(lang string, code string) string {
 	return "```" + lang + "\n" + code + "\n```"
+}
+
+func symbolInformationToData(symbol *lsproto.SymbolInformation) string {
+	return fmt.Sprintf("{| name: %s, kind: %s |}", symbol.Name, symbol.Kind.String())
 }
