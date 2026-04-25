@@ -15,20 +15,22 @@ chalk
 
 
 //// [mod1.js]
+"use strict";
 const chalk = {
     grey: {}
 };
-export var chalk = chalk;
 module.exports.chalk = chalk;
 //// [main.js]
+"use strict";
 const { chalk: { grey } } = require('./mod1');
 grey;
 chalk;
 
 
 //// [mod1.d.ts]
-export declare var chalk: {
+declare const chalk: {
     grey: {};
 };
+export { chalk };
 //// [main.d.ts]
 export {};

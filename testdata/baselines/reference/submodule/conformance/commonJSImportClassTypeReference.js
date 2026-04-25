@@ -23,7 +23,6 @@ class K {
         return new K();
     }
 }
-export var K = K;
 exports.K = K;
 //// [main.js]
 "use strict";
@@ -38,6 +37,6 @@ function f(k) {
 declare class K {
     values(): K;
 }
-export declare var K: typeof K;
+export { K };
 //// [main.d.ts]
 export {};

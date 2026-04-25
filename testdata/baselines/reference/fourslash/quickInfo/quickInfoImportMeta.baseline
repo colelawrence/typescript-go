@@ -1,6 +1,5 @@
 // === QuickInfo ===
 === /foo.ts ===
-// /// <reference no-default-lib="true"/>
 // /// <reference path='./bar.d.ts' />
 // import.meta;
 //   ^
@@ -9,7 +8,7 @@
 // | ----------------------------------------------------------------------
 // ^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (property) ImportMetaExpression.meta: ImportMeta
 // | ```
 // | 
@@ -17,9 +16,9 @@
 [
   {
     "marker": {
-      "Position": 77,
+      "Position": 38,
       "LSPosition": {
-        "line": 2,
+        "line": 1,
         "character": 2
       },
       "Name": "1",
@@ -29,9 +28,9 @@
   },
   {
     "marker": {
-      "Position": 84,
+      "Position": 45,
       "LSPosition": {
-        "line": 2,
+        "line": 1,
         "character": 9
       },
       "Name": "2",
@@ -40,15 +39,15 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(property) ImportMetaExpression.meta: ImportMeta\n```\n"
+        "value": "```typescript\n(property) ImportMetaExpression.meta: ImportMeta\n```\n"
       },
       "range": {
         "start": {
-          "line": 2,
+          "line": 1,
           "character": 0
         },
         "end": {
-          "line": 2,
+          "line": 1,
           "character": 11
         }
       }

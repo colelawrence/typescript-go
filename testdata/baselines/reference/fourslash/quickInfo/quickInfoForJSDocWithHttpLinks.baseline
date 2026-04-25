@@ -3,7 +3,7 @@
 // /** @typedef {number} https://wat */
 //                       ^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | type https = number
 // | ```
 // | 
@@ -14,9 +14,10 @@
 // * @property {number} https://wass
 //                      ^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (property) https: number
 // | ```
+// | ://wass
 // | 
 // | ----------------------------------------------------------------------
 // */
@@ -25,7 +26,7 @@
 // /** @callback http://vad */
 //               ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | type http = () => any
 // | ```
 // | 
@@ -35,19 +36,19 @@
 // var see1 = true
 //     ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | var see1: boolean
 // | ```
 // | 
 // | 
-// | *@see* `https` — ://hvad 
+// | *@see* — https://hvad 
 // | ----------------------------------------------------------------------
 // 
 // /** @see {@link https://hva} */
 // var see2 = true
 //     ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | var see2: boolean
 // | ```
 // | 
@@ -59,7 +60,7 @@
 // var see3 = true
 //     ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | var see3: boolean
 // | ```
 // | [https://hvaD](https://hvaD)
@@ -78,7 +79,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\ntype https = number\n```\n"
+        "value": "```typescript\ntype https = number\n```\n"
       },
       "range": {
         "start": {
@@ -105,7 +106,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(property) https: number\n```\n"
+        "value": "```typescript\n(property) https: number\n```\n://wass\n"
       },
       "range": {
         "start": {
@@ -132,7 +133,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\ntype http = () => any\n```\n"
+        "value": "```typescript\ntype http = () => any\n```\n"
       },
       "range": {
         "start": {
@@ -159,7 +160,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nvar see1: boolean\n```\n\n\n*@see* `https` — ://hvad "
+        "value": "```typescript\nvar see1: boolean\n```\n\n\n*@see* — https://hvad "
       },
       "range": {
         "start": {
@@ -186,7 +187,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nvar see2: boolean\n```\n\n\n*@see* — [https://hva](https://hva) "
+        "value": "```typescript\nvar see2: boolean\n```\n\n\n*@see* — [https://hva](https://hva) "
       },
       "range": {
         "start": {
@@ -213,7 +214,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nvar see3: boolean\n```\n[https://hvaD](https://hvaD)"
+        "value": "```typescript\nvar see3: boolean\n```\n[https://hvaD](https://hvaD)"
       },
       "range": {
         "start": {

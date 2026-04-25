@@ -1,13 +1,11 @@
 package tsoptions
 
 import (
-	"fmt"
+	"cmp"
 	"reflect"
-	"regexp"
 	"slices"
 	"strings"
 
-	"github.com/dlclark/regexp2"
 	"github.com/microsoft/typescript-go/internal/ast"
 	"github.com/microsoft/typescript-go/internal/collections"
 	"github.com/microsoft/typescript-go/internal/core"
@@ -19,6 +17,7 @@ import (
 	"github.com/microsoft/typescript-go/internal/parser"
 	"github.com/microsoft/typescript-go/internal/tspath"
 	"github.com/microsoft/typescript-go/internal/vfs"
+	"github.com/microsoft/typescript-go/internal/vfs/vfsmatch"
 )
 
 type extendsResult struct {
@@ -105,13 +104,15 @@ func (c *configFileSpecs) matchesExclude(fileName string, comparePathsOptions ts
 	if len(c.validatedExcludeSpecs) == 0 {
 		return false
 	}
-	excludePattern := vfs.GetRegularExpressionForWildcard(c.validatedExcludeSpecs, comparePathsOptions.CurrentDirectory, "exclude")
-	excludeRegex := vfs.GetRegexFromPattern(excludePattern, comparePathsOptions.UseCaseSensitiveFileNames)
-	if match, err := excludeRegex.MatchString(fileName); err == nil && match {
+	excludeMatcher := vfsmatch.NewSpecMatcher(c.validatedExcludeSpecs, comparePathsOptions.CurrentDirectory, vfsmatch.UsageExclude, comparePathsOptions.UseCaseSensitiveFileNames)
+	if excludeMatcher == nil {
+		return false
+	}
+	if excludeMatcher.MatchString(fileName) {
 		return true
 	}
 	if !tspath.HasExtension(fileName) {
-		if match, err := excludeRegex.MatchString(tspath.EnsureTrailingDirectorySeparator(fileName)); err == nil && match {
+		if excludeMatcher.MatchString(tspath.EnsureTrailingDirectorySeparator(fileName)) {
 			return true
 		}
 	}
@@ -123,12 +124,9 @@ func (c *configFileSpecs) getMatchedIncludeSpec(fileName string, comparePathsOpt
 		return ""
 	}
 	for index, spec := range c.validatedIncludeSpecs {
-		includePattern := vfs.GetPatternFromSpec(spec, comparePathsOptions.CurrentDirectory, "files")
-		if includePattern != "" {
-			includeRegex := vfs.GetRegexFromPattern(includePattern, comparePathsOptions.UseCaseSensitiveFileNames)
-			if match, err := includeRegex.MatchString(fileName); err == nil && match {
-				return c.validatedIncludeSpecsBeforeSubstitution[index]
-			}
+		includeMatcher := vfsmatch.NewSpecMatcher([]string{spec}, comparePathsOptions.CurrentDirectory, vfsmatch.UsageFiles, comparePathsOptions.UseCaseSensitiveFileNames)
+		if includeMatcher != nil && includeMatcher.MatchString(fileName) {
+			return c.validatedIncludeSpecsBeforeSubstitution[index]
 		}
 	}
 	return ""
@@ -154,13 +152,20 @@ type FileExtensionInfo struct {
 }
 
 type ExtendedConfigCache interface {
-	GetExtendedConfig(fileName string, path tspath.Path, parse func() *ExtendedConfigCacheEntry) *ExtendedConfigCacheEntry
+	GetExtendedConfig(fileName string, path tspath.Path, resolutionStack []string, host ParseConfigHost) *ExtendedConfigCacheEntry
 }
 
 type ExtendedConfigCacheEntry struct {
 	extendedResult *TsConfigSourceFile
 	extendedConfig *parsedTsconfig
 	errors         []*ast.Diagnostic
+}
+
+func (e *ExtendedConfigCacheEntry) ExtendedFileNames() []string {
+	if e.extendedResult != nil {
+		return e.extendedResult.ExtendedSourceFiles
+	}
+	return nil
 }
 
 type parsedTsconfig struct {
@@ -858,11 +863,10 @@ func getDefaultCompilerOptions(configFileName string) *core.CompilerOptions {
 	if configFileName != "" && tspath.GetBaseFileName(configFileName) == "jsconfig.json" {
 		depth := 2
 		options = &core.CompilerOptions{
-			AllowJs:                      core.TSTrue,
-			MaxNodeModuleJsDepth:         &depth,
-			AllowSyntheticDefaultImports: core.TSTrue,
-			SkipLibCheck:                 core.TSTrue,
-			NoEmit:                       core.TSTrue,
+			AllowJs:              core.TSTrue,
+			MaxNodeModuleJsDepth: &depth,
+			SkipLibCheck:         core.TSTrue,
+			NoEmit:               core.TSTrue,
 		}
 	}
 	return options
@@ -949,27 +953,11 @@ func getExtendedConfig(
 	var errors []*ast.Diagnostic
 	extendedConfigPath := tspath.ToPath(extendedConfigFileName, host.GetCurrentDirectory(), host.FS().UseCaseSensitiveFileNames())
 
-	parse := func() *ExtendedConfigCacheEntry {
-		var extendedConfig *parsedTsconfig
-		var entryErrors []*ast.Diagnostic
-		extendedResult, err := readJsonConfigFile(extendedConfigFileName, extendedConfigPath, host.FS().ReadFile)
-		entryErrors = append(entryErrors, err...)
-		if len(extendedResult.SourceFile.Diagnostics()) == 0 {
-			extendedConfig, err = parseConfig(nil, extendedResult, host, tspath.GetDirectoryPath(extendedConfigFileName), tspath.GetBaseFileName(extendedConfigFileName), resolutionStack, extendedConfigCache)
-			entryErrors = append(entryErrors, err...)
-		}
-		return &ExtendedConfigCacheEntry{
-			extendedResult: extendedResult,
-			extendedConfig: extendedConfig,
-			errors:         entryErrors,
-		}
-	}
-
 	var cacheEntry *ExtendedConfigCacheEntry
 	if extendedConfigCache != nil {
-		cacheEntry = extendedConfigCache.GetExtendedConfig(extendedConfigFileName, extendedConfigPath, parse)
+		cacheEntry = extendedConfigCache.GetExtendedConfig(extendedConfigFileName, extendedConfigPath, resolutionStack, host)
 	} else {
-		cacheEntry = parse()
+		cacheEntry = ParseExtendedConfig(extendedConfigFileName, extendedConfigPath, resolutionStack, host, extendedConfigCache)
 	}
 
 	if len(cacheEntry.errors) > 0 {
@@ -985,6 +973,28 @@ func getExtendedConfig(
 		}
 	}
 	return cacheEntry.extendedConfig, errors
+}
+
+func ParseExtendedConfig(
+	fileName string,
+	path tspath.Path,
+	resolutionStack []string,
+	host ParseConfigHost,
+	extendedConfigCache ExtendedConfigCache,
+) *ExtendedConfigCacheEntry {
+	var extendedConfig *parsedTsconfig
+	var entryErrors []*ast.Diagnostic
+	extendedResult, err := readJsonConfigFile(fileName, path, host.FS().ReadFile)
+	entryErrors = append(entryErrors, err...)
+	if len(extendedResult.SourceFile.Diagnostics()) == 0 {
+		extendedConfig, err = parseConfig(nil, extendedResult, host, tspath.GetDirectoryPath(fileName), tspath.GetBaseFileName(fileName), resolutionStack, extendedConfigCache)
+		entryErrors = append(entryErrors, err...)
+	}
+	return &ExtendedConfigCacheEntry{
+		extendedResult: extendedResult,
+		extendedConfig: extendedConfig,
+		errors:         entryErrors,
+	}
 }
 
 // parseConfig just extracts options/include/exclude/files out of a config file.
@@ -1108,7 +1118,7 @@ func parseConfig(
 		}
 		if sourceFile != nil {
 			for extendedSourceFile := range result.extendedSourceFiles.Keys() {
-				sourceFile.ExtendedSourceFiles = append(sourceFile.ExtendedSourceFiles, extendedSourceFile)
+				sourceFile.ExtendedSourceFiles = core.InsertSorted(sourceFile.ExtendedSourceFiles, extendedSourceFile, cmp.Compare)
 			}
 		}
 		ownConfig.options = mergeCompilerOptions(result.options, ownConfig.options, ownConfig.raw)
@@ -1372,13 +1382,20 @@ func validateSpecs(specs any, disallowTrailingRecursion bool, jsonSourceFile *as
 
 func specToDiagnostic(spec string, disallowTrailingRecursion bool) *diagnostics.Message {
 	if disallowTrailingRecursion {
-		if ok, _ := regexp.MatchString(invalidTrailingRecursionPattern, spec); ok {
+		if invalidTrailingRecursion(spec) {
 			return diagnostics.File_specification_cannot_end_in_a_recursive_directory_wildcard_Asterisk_Asterisk_Colon_0
 		}
 	} else if invalidDotDotAfterRecursiveWildcard(spec) {
 		return diagnostics.File_specification_cannot_contain_a_parent_directory_that_appears_after_a_recursive_directory_wildcard_Asterisk_Asterisk_Colon_0
 	}
 	return nil
+}
+
+func invalidTrailingRecursion(spec string) bool {
+	// Matches **, /**, **/, and /**/, but not a**b.
+	// Strip optional trailing slash, then check if it ends with /** or is just **
+	s := strings.TrimSuffix(spec, "/")
+	return s == "**" || strings.HasSuffix(s, "/**")
 }
 
 func invalidDotDotAfterRecursiveWildcard(s string) bool {
@@ -1404,18 +1421,6 @@ func invalidDotDotAfterRecursiveWildcard(s string) bool {
 	}
 	return lastDotIndex > wildcardIndex
 }
-
-// Tests for a path that ends in a recursive directory wildcard.
-//
-//	Matches **, \**, **\, and \**\, but not a**b.
-//	NOTE: used \ in place of / above to avoid issues with multiline comments.
-//
-// Breakdown:
-//
-//	(^|\/)      # matches either the beginning of the string or a directory separator.
-//	\*\*        # matches the recursive directory wildcard "**".
-//	\/?$        # matches an optional trailing directory separator at the end of the string.
-const invalidTrailingRecursionPattern = `(?:^|\/)\*\*\/?$`
 
 func GetTsConfigPropArrayElementValue(tsConfigSourceFile *ast.SourceFile, propKey string, elementValue string) *ast.StringLiteral {
 	callback := GetCallbackForFindingPropertyAssignmentByValue(elementValue)
@@ -1647,23 +1652,19 @@ func getFileNamesFromConfigSpecs(
 		literalFileMap.Set(keyMappper(fileName), file)
 	}
 
-	var jsonOnlyIncludeRegexes []*regexp2.Regexp
+	var jsonOnlyIncludeMatchers *vfsmatch.SpecMatcher
 	if len(validatedIncludeSpecs) > 0 {
-		files := vfs.ReadDirectory(host, basePath, basePath, core.Flatten(supportedExtensionsWithJsonIfResolveJsonModule), validatedExcludeSpecs, validatedIncludeSpecs, nil)
+		files := vfsmatch.ReadDirectory(host, basePath, basePath, core.Flatten(supportedExtensionsWithJsonIfResolveJsonModule), validatedExcludeSpecs, validatedIncludeSpecs, vfsmatch.UnlimitedDepth)
 		for _, file := range files {
 			if tspath.FileExtensionIs(file, tspath.ExtensionJson) {
-				if jsonOnlyIncludeRegexes == nil {
+				if jsonOnlyIncludeMatchers == nil {
 					includes := core.Filter(validatedIncludeSpecs, func(include string) bool { return strings.HasSuffix(include, tspath.ExtensionJson) })
-					includeFilePatterns := core.Map(vfs.GetRegularExpressionsForWildcards(includes, basePath, "files"), func(pattern string) string { return fmt.Sprintf("^%s$", pattern) })
-					if includeFilePatterns != nil {
-						jsonOnlyIncludeRegexes = core.Map(includeFilePatterns, func(pattern string) *regexp2.Regexp {
-							return vfs.GetRegexFromPattern(pattern, host.UseCaseSensitiveFileNames())
-						})
-					} else {
-						jsonOnlyIncludeRegexes = nil
-					}
+					jsonOnlyIncludeMatchers = vfsmatch.NewSpecMatcher(includes, basePath, vfsmatch.UsageFiles, host.UseCaseSensitiveFileNames())
 				}
-				includeIndex := core.FindIndex(jsonOnlyIncludeRegexes, func(re *regexp2.Regexp) bool { return core.Must(re.MatchString(file)) })
+				var includeIndex int = -1
+				if jsonOnlyIncludeMatchers != nil {
+					includeIndex = jsonOnlyIncludeMatchers.MatchIndex(file)
+				}
 				if includeIndex != -1 {
 					key := keyMappper(file)
 					if !literalFileMap.Has(key) && !wildCardJsonFileMap.Has(key) {

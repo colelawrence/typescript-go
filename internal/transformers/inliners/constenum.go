@@ -51,19 +51,19 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 					} else if v.IsNaN() {
 						replacement = tx.Factory().NewIdentifier("NaN")
 					} else if v.Abs() == v {
-						replacement = tx.Factory().NewNumericLiteral(v.String())
+						replacement = tx.Factory().NewNumericLiteral(v.String(), ast.TokenFlagsNone)
 					} else {
-						replacement = tx.Factory().NewPrefixUnaryExpression(ast.KindMinusToken, tx.Factory().NewNumericLiteral(v.Abs().String()))
+						replacement = tx.Factory().NewPrefixUnaryExpression(ast.KindMinusToken, tx.Factory().NewNumericLiteral(v.Abs().String(), ast.TokenFlagsNone))
 					}
 				case string:
-					replacement = tx.Factory().NewStringLiteral(v)
+					replacement = tx.Factory().NewStringLiteral(v, ast.TokenFlagsNone)
 				case jsnum.PseudoBigInt: // technically not supported by strada, and issues a checker error, handled here for completeness
 					if v == (jsnum.PseudoBigInt{}) {
-						replacement = tx.Factory().NewBigIntLiteral("0")
+						replacement = tx.Factory().NewBigIntLiteral("0", ast.TokenFlagsNone)
 					} else if !v.Negative {
-						replacement = tx.Factory().NewBigIntLiteral(v.Base10Value)
+						replacement = tx.Factory().NewBigIntLiteral(v.Base10Value, ast.TokenFlagsNone)
 					} else {
-						replacement = tx.Factory().NewPrefixUnaryExpression(ast.KindMinusToken, tx.Factory().NewBigIntLiteral(v.Base10Value))
+						replacement = tx.Factory().NewPrefixUnaryExpression(ast.KindMinusToken, tx.Factory().NewBigIntLiteral(v.Base10Value, ast.TokenFlagsNone))
 					}
 				}
 
@@ -71,7 +71,7 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 					original := tx.EmitContext().MostOriginal(node)
 					if original != nil && !ast.NodeIsSynthesized(original) {
 						originalText := scanner.GetTextOfNode(original)
-						escapedText := " " + safeMultiLineComment(originalText) + " "
+						escapedText := safeMultiLineComment(originalText)
 						tx.EmitContext().AddSyntheticTrailingComment(replacement, ast.KindMultiLineCommentTrivia, escapedText, false)
 					}
 				}
@@ -84,5 +84,19 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 }
 
 func safeMultiLineComment(text string) string {
-	return strings.ReplaceAll(text, "*/", "*_/")
+	var b strings.Builder
+	b.Grow(len(text) + 2)
+	b.WriteByte(' ')
+	for {
+		i := strings.Index(text, "*/")
+		if i < 0 {
+			break
+		}
+		b.WriteString(text[:i])
+		b.WriteString("*_/")
+		text = text[i+2:]
+	}
+	b.WriteString(text)
+	b.WriteByte(' ')
+	return b.String()
 }

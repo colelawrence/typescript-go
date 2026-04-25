@@ -65,12 +65,18 @@ linters:
       customlint:
         type: module
 
+    modernize:
+      disable:
+        - slicesbackward # https://github.com/golang/go/issues/78829
+
     depguard:
       rules:
         main:
           deny:
             - pkg: 'encoding/json$'
-              desc: 'Use "github.com/go-json-experiment/json" instead.'
+              desc: 'Use "github.com/microsoft/typescript-go/internal/json" instead.'
+            - pkg: 'github.com/go-json-experiment/json'
+              desc: 'Use "github.com/microsoft/typescript-go/internal/json" instead.'
 
     forbidigo:
       analyze-types: true

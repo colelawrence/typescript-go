@@ -4,15 +4,26 @@
 //     num: 0,
 //     f() {
 //         type Y = typeof this;
-//                           ^
+//                         ^^^^
 // | ----------------------------------------------------------------------
-// | No quickinfo at /*1*/.
+// | ```typescript
+// | this: {
+// |     num: number;
+// |     f(): void;
+// |     g(this: number): void;
+// | }
+// | ```
+// | 
 // | ----------------------------------------------------------------------
 //         type Z = typeof this.num;
 //                         ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | any
+// | ```typescript
+// | this: {
+// |     num: number;
+// |     f(): void;
+// |     g(this: number): void;
+// | }
 // | ```
 // | 
 // | ----------------------------------------------------------------------
@@ -21,8 +32,8 @@
 //         type X = typeof this;
 //                         ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) this: number
+// | ```typescript
+// | this: number
 // | ```
 // | 
 // | ----------------------------------------------------------------------
@@ -34,16 +45,16 @@
 //         type Y = typeof this;
 //                         ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | this
+// | ```typescript
+// | this: this
 // | ```
 // | 
 // | ----------------------------------------------------------------------
 //         type Z = typeof this.num;
 //                         ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | this
+// | ```typescript
+// | this: this
 // | ```
 // | 
 // | ----------------------------------------------------------------------
@@ -52,8 +63,8 @@
 //         type X = typeof this;
 //                         ^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) this: number
+// | ```typescript
+// | this: number
 // | ```
 // | 
 // | ----------------------------------------------------------------------
@@ -70,7 +81,22 @@
       "Name": "1",
       "Data": {}
     },
-    "item": null
+    "item": {
+      "contents": {
+        "kind": "markdown",
+        "value": "```typescript\nthis: {\n    num: number;\n    f(): void;\n    g(this: number): void;\n}\n```\n"
+      },
+      "range": {
+        "start": {
+          "line": 3,
+          "character": 24
+        },
+        "end": {
+          "line": 3,
+          "character": 28
+        }
+      }
+    }
   },
   {
     "marker": {
@@ -85,7 +111,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nany\n```\n"
+        "value": "```typescript\nthis: {\n    num: number;\n    f(): void;\n    g(this: number): void;\n}\n```\n"
       },
       "range": {
         "start": {
@@ -112,7 +138,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) this: number\n```\n"
+        "value": "```typescript\nthis: number\n```\n"
       },
       "range": {
         "start": {
@@ -139,7 +165,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nthis\n```\n"
+        "value": "```typescript\nthis: this\n```\n"
       },
       "range": {
         "start": {
@@ -166,7 +192,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nthis\n```\n"
+        "value": "```typescript\nthis: this\n```\n"
       },
       "range": {
         "start": {
@@ -193,7 +219,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) this: number\n```\n"
+        "value": "```typescript\nthis: number\n```\n"
       },
       "range": {
         "start": {

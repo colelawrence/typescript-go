@@ -5,10 +5,13 @@
 //  * @typedef {Object} Bar
 //                      ^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | type Bar = { baz: string; qux: string; }
+// | ```typescript
+// | type Bar = {
+// |     baz: string;
+// |     qux: string;
+// | }
 // | ```
-// | 
+// | Bar comment
 // | ----------------------------------------------------------------------
 //  * @property {string} baz - baz comment
 //  * @property {string} qux - qux comment
@@ -19,10 +22,13 @@
 //  * @param {Bar} x - x comment
 //            ^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | type Bar = { baz: string; qux: string; }
+// | ```typescript
+// | type Bar = {
+// |     baz: string;
+// |     qux: string;
+// | }
 // | ```
-// | 
+// | Bar comment
 // | ----------------------------------------------------------------------
 //  * @returns {Bar}
 //  */
@@ -43,7 +49,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\ntype Bar = { baz: string; qux: string; }\n```\n"
+        "value": "```typescript\ntype Bar = {\n    baz: string;\n    qux: string;\n}\n```\nBar comment"
       },
       "range": {
         "start": {
@@ -70,7 +76,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\ntype Bar = { baz: string; qux: string; }\n```\n"
+        "value": "```typescript\ntype Bar = {\n    baz: string;\n    qux: string;\n}\n```\nBar comment"
       },
       "range": {
         "start": {

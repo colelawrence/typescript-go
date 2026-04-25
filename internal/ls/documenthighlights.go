@@ -5,7 +5,9 @@ import (
 
 	"github.com/microsoft/typescript-go/internal/ast"
 	"github.com/microsoft/typescript-go/internal/astnav"
+	"github.com/microsoft/typescript-go/internal/collections"
 	"github.com/microsoft/typescript-go/internal/compiler"
+	"github.com/microsoft/typescript-go/internal/ls/lsconv"
 	"github.com/microsoft/typescript-go/internal/ls/lsutil"
 	"github.com/microsoft/typescript-go/internal/scanner"
 	"github.com/microsoft/typescript-go/internal/stringutil"
@@ -14,58 +16,115 @@ import (
 )
 
 func (l *LanguageService) ProvideDocumentHighlights(ctx context.Context, documentUri lsproto.DocumentUri, documentPosition lsproto.Position) (lsproto.DocumentHighlightResponse, error) {
+	result, err := l.provideDocumentHighlightsWorker(ctx, documentUri, documentPosition, nil)
+	if err != nil {
+		return lsproto.DocumentHighlightsOrNull{}, err
+	}
+	// Extract highlights for the current file only.
+	var documentHighlights []*lsproto.DocumentHighlight
+	if result.MultiDocumentHighlights != nil {
+		for _, mh := range *result.MultiDocumentHighlights {
+			if mh.Uri == documentUri {
+				documentHighlights = append(documentHighlights, mh.Highlights...)
+			}
+		}
+	}
+	return lsproto.DocumentHighlightsOrNull{DocumentHighlights: &documentHighlights}, nil
+}
+
+func (l *LanguageService) ProvideMultiDocumentHighlights(ctx context.Context, documentUri lsproto.DocumentUri, documentPosition lsproto.Position, filesToSearch []lsproto.DocumentUri) (lsproto.CustomMultiDocumentHighlightResponse, error) {
+	return l.provideDocumentHighlightsWorker(ctx, documentUri, documentPosition, filesToSearch)
+}
+
+func (l *LanguageService) provideDocumentHighlightsWorker(ctx context.Context, documentUri lsproto.DocumentUri, documentPosition lsproto.Position, filesToSearch []lsproto.DocumentUri) (lsproto.MultiDocumentHighlightsOrNull, error) {
 	program, sourceFile := l.getProgramAndFile(documentUri)
 	position := int(l.converters.LineAndCharacterToPosition(sourceFile, documentPosition))
 	node := astnav.GetTouchingPropertyName(sourceFile, position)
+
+	// Cheap JSX check before resolving files to search.
 	if node.Parent != nil && (node.Parent.Kind == ast.KindJsxClosingElement || (node.Parent.Kind == ast.KindJsxOpeningElement && node.Parent.TagName() == node)) {
 		var openingElement, closingElement *ast.Node
 		if ast.IsJsxElement(node.Parent.Parent) {
 			openingElement = node.Parent.Parent.AsJsxElement().OpeningElement
 			closingElement = node.Parent.Parent.AsJsxElement().ClosingElement
 		}
-		var documentHighlights []*lsproto.DocumentHighlight
+		var highlights []*lsproto.DocumentHighlight
 		kind := lsproto.DocumentHighlightKindRead
 		if openingElement != nil {
-			documentHighlights = append(documentHighlights, &lsproto.DocumentHighlight{
-				Range: *l.createLspRangeFromNode(openingElement, sourceFile),
+			highlights = append(highlights, &lsproto.DocumentHighlight{
+				Range: l.createLspRangeFromNode(openingElement, sourceFile),
 				Kind:  &kind,
 			})
 		}
 		if closingElement != nil {
-			documentHighlights = append(documentHighlights, &lsproto.DocumentHighlight{
-				Range: *l.createLspRangeFromNode(closingElement, sourceFile),
+			highlights = append(highlights, &lsproto.DocumentHighlight{
+				Range: l.createLspRangeFromNode(closingElement, sourceFile),
 				Kind:  &kind,
 			})
 		}
-		return lsproto.DocumentHighlightsOrNull{
-			DocumentHighlights: &documentHighlights,
+		multiHighlights := []*lsproto.MultiDocumentHighlight{
+			{Uri: documentUri, Highlights: highlights},
+		}
+		return lsproto.MultiDocumentHighlightsOrNull{
+			MultiDocumentHighlights: &multiHighlights,
 		}, nil
 	}
-	documentHighlights := l.getSemanticDocumentHighlights(ctx, position, node, program, sourceFile)
-	if len(documentHighlights) == 0 {
-		documentHighlights = l.getSyntacticDocumentHighlights(node, sourceFile)
+
+	// Resolve the source files to search, deduplicating by file name.
+	var sourceFiles []*ast.SourceFile
+	seenFiles := collections.NewSetWithSizeHint[string](len(filesToSearch))
+	for _, uri := range filesToSearch {
+		fileName := uri.FileName()
+		if !seenFiles.AddIfAbsent(fileName) {
+			continue
+		}
+		if sf := program.GetSourceFile(fileName); sf != nil {
+			sourceFiles = append(sourceFiles, sf)
+		}
 	}
-	// if nil is passed here we never generate an error, just pass an empty highlight
-	return lsproto.DocumentHighlightsOrNull{DocumentHighlights: &documentHighlights}, nil
+	if len(sourceFiles) == 0 {
+		sourceFiles = []*ast.SourceFile{sourceFile}
+	}
+
+	multiHighlights := l.getSemanticDocumentHighlights(ctx, position, node, program, sourceFiles)
+	if len(multiHighlights) == 0 {
+		// Fall back to syntactic highlights for the current file only.
+		syntacticHighlights := l.getSyntacticDocumentHighlights(node, sourceFile)
+		if len(syntacticHighlights) > 0 {
+			multiHighlights = []*lsproto.MultiDocumentHighlight{
+				{Uri: documentUri, Highlights: syntacticHighlights},
+			}
+		}
+	}
+	return lsproto.MultiDocumentHighlightsOrNull{MultiDocumentHighlights: &multiHighlights}, nil
 }
 
-func (l *LanguageService) getSemanticDocumentHighlights(ctx context.Context, position int, node *ast.Node, program *compiler.Program, sourceFile *ast.SourceFile) []*lsproto.DocumentHighlight {
+func (l *LanguageService) getSemanticDocumentHighlights(ctx context.Context, position int, node *ast.Node, program *compiler.Program, sourceFiles []*ast.SourceFile) []*lsproto.MultiDocumentHighlight {
 	options := refOptions{use: referenceUseNone}
-	referenceEntries := l.getReferencedSymbolsForNode(ctx, position, node, program, []*ast.SourceFile{sourceFile}, options)
+	referenceEntries := l.getReferencedSymbolsForNode(ctx, position, node, program, sourceFiles, options)
 	if referenceEntries == nil {
 		return nil
 	}
 
-	var highlights []*lsproto.DocumentHighlight
+	// Group highlights by file
+	fileHighlights := make(map[string][]*lsproto.DocumentHighlight)
 	for _, entry := range referenceEntries {
 		for _, ref := range entry.references {
 			fileName, highlight := l.toDocumentHighlight(ref)
-			if fileName == sourceFile.FileName() {
-				highlights = append(highlights, highlight)
-			}
+			fileHighlights[fileName] = append(fileHighlights[fileName], highlight)
 		}
 	}
-	return highlights
+
+	var result []*lsproto.MultiDocumentHighlight
+	for _, sf := range sourceFiles {
+		if highlights, ok := fileHighlights[sf.FileName()]; ok {
+			result = append(result, &lsproto.MultiDocumentHighlight{
+				Uri:        lsconv.FileNameToDocumentURI(sf.FileName()),
+				Highlights: highlights,
+			})
+		}
+	}
+	return result
 }
 
 func (l *LanguageService) toDocumentHighlight(entry *ReferenceEntry) (string, *lsproto.DocumentHighlight) {
@@ -74,7 +133,7 @@ func (l *LanguageService) toDocumentHighlight(entry *ReferenceEntry) (string, *l
 	kind := lsproto.DocumentHighlightKindRead
 	if entry.kind == entryKindRange {
 		return entry.fileName, &lsproto.DocumentHighlight{
-			Range: *l.getRangeOfEntry(entry),
+			Range: l.getRangeOfEntry(entry),
 			Kind:  &kind,
 		}
 	}
@@ -85,7 +144,7 @@ func (l *LanguageService) toDocumentHighlight(entry *ReferenceEntry) (string, *l
 	}
 
 	dh := &lsproto.DocumentHighlight{
-		Range: *l.getRangeOfEntry(entry),
+		Range: l.getRangeOfEntry(entry),
 		Kind:  &kind,
 	}
 
@@ -160,7 +219,7 @@ func (l *LanguageService) highlightSpans(nodes []*ast.Node, sourceFile *ast.Sour
 	for _, node := range nodes {
 		if node != nil {
 			highlights = append(highlights, &lsproto.DocumentHighlight{
-				Range: *l.createLspRangeFromNode(node, sourceFile),
+				Range: l.createLspRangeFromNode(node, sourceFile),
 				Kind:  &kind,
 			})
 		}
@@ -218,7 +277,7 @@ func (l *LanguageService) getIfElseOccurrences(ifStatement *ast.IfStatement, sou
 			}
 			if shouldCombine {
 				highlights = append(highlights, &lsproto.DocumentHighlight{
-					Range: *l.createLspRangeFromBounds(scanner.SkipTrivia(sourceFile.Text(), elseKeyword.Pos()), ifKeyword.End(), sourceFile),
+					Range: l.createLspRangeFromBounds(scanner.SkipTrivia(sourceFile.Text(), elseKeyword.Pos()), ifKeyword.End(), sourceFile),
 					Kind:  &kind,
 				})
 				i++ // skip the next keyword
@@ -227,7 +286,7 @@ func (l *LanguageService) getIfElseOccurrences(ifStatement *ast.IfStatement, sou
 		}
 		// Ordinary case: just highlight the keyword.
 		highlights = append(highlights, &lsproto.DocumentHighlight{
-			Range: *l.createLspRangeFromNode(keywords[i], sourceFile),
+			Range: l.createLspRangeFromNode(keywords[i], sourceFile),
 			Kind:  &kind,
 		})
 	}
@@ -235,10 +294,22 @@ func (l *LanguageService) getIfElseOccurrences(ifStatement *ast.IfStatement, sou
 }
 
 func getIfElseKeywords(ifStatement *ast.IfStatement, sourceFile *ast.SourceFile) []*ast.Node {
+	// We may be at an if statement like those in the range below:
+	//
+	//   ```
+	//   if (...) {
+	//   } else [|if (...) {}|]
+	//   ````
+	//
 	// Traverse upwards through all parent if-statements linked by their else-branches.
-	// Is this cast error safe or should i be checking if elseStatement exists first?
-	for ast.IsIfStatement(ifStatement.Parent) && ifStatement.Parent.AsIfStatement().ElseStatement.AsIfStatement() == ifStatement {
-		ifStatement = ifStatement.Parent.AsIfStatement()
+	for ast.IsIfStatement(ifStatement.Parent) {
+		// See if the parent's `else` is actually the current `if` statement.
+		parentingIf := ifStatement.Parent.AsIfStatement()
+		elseStatement := parentingIf.ElseStatement
+		if elseStatement != ifStatement.AsNode() {
+			break
+		}
+		ifStatement = parentingIf
 	}
 
 	var keywords []*ast.Node
@@ -399,20 +470,18 @@ func getTryCatchFinallyOccurrences(node *ast.Node, sourceFile *ast.SourceFile) [
 
 	var keywords []*ast.Node
 	token := lsutil.GetFirstToken(node, sourceFile)
-	if token.Kind == ast.KindTryKeyword {
+	if token != nil && token.Kind == ast.KindTryKeyword {
 		keywords = append(keywords, token)
 	}
 
 	if tryStatement.CatchClause != nil {
-		catchToken := lsutil.GetFirstToken(tryStatement.CatchClause.AsNode(), sourceFile)
-		if catchToken.Kind == ast.KindCatchKeyword {
+		if catchToken := astnav.FindChildOfKind(node, ast.KindCatchKeyword, sourceFile); catchToken != nil {
 			keywords = append(keywords, catchToken)
 		}
 	}
 
 	if tryStatement.FinallyBlock != nil {
-		finallyKeyword := astnav.FindChildOfKind(node, ast.KindFinallyKeyword, sourceFile)
-		if finallyKeyword.Kind == ast.KindFinallyKeyword {
+		if finallyKeyword := astnav.FindChildOfKind(node, ast.KindFinallyKeyword, sourceFile); finallyKeyword != nil {
 			keywords = append(keywords, finallyKeyword)
 		}
 	}
@@ -577,7 +646,7 @@ func getAsyncAndAwaitOccurrences(node *ast.Node, sourceFile *ast.SourceFile) []*
 }
 
 func getYieldOccurrences(node *ast.Node, sourceFile *ast.SourceFile) []*ast.Node {
-	parentFunc := ast.FindAncestor(node.Parent, ast.IsFunctionLike).AsFunctionDeclaration()
+	parentFunc := ast.FindAncestor(node.Parent, ast.IsFunctionLike)
 	if parentFunc == nil {
 		return nil
 	}

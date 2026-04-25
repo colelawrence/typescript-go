@@ -16,10 +16,6 @@ exports.K = class K {
 
 //// [mod1.js]
 "use strict";
-export var K = class K {
-    values() {
-    }
-};
 exports.K = class K {
     values() {
     }
@@ -35,9 +31,25 @@ function f(k) {
 
 //// [mod1.d.ts]
 export declare var K: {
-    new (): {
-        values(): void;
-    };
+    new (): K;
 };
 //// [main.d.ts]
 export {};
+
+
+//// [DtsFileErrors]
+
+
+out/mod1.d.ts(2,13): error TS2749: 'K' refers to a value, but is being used as a type here. Did you mean 'typeof K'?
+
+
+==== out/main.d.ts (0 errors) ====
+    export {};
+    
+==== out/mod1.d.ts (1 errors) ====
+    export declare var K: {
+        new (): K;
+                ~
+!!! error TS2749: 'K' refers to a value, but is being used as a type here. Did you mean 'typeof K'?
+    };
+    

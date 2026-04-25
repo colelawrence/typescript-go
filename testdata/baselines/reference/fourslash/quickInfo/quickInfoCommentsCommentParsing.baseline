@@ -7,7 +7,7 @@
 // simple( );
 // ^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function simple(): void
 // | ```
 // | 
@@ -21,7 +21,7 @@
 // multiLine( );
 // ^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function multiLine(): void
 // | ```
 // | 
@@ -33,7 +33,7 @@
 // jsDocSingleLine();
 // ^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocSingleLine(): void
 // | ```
 // | this is eg of single line jsdoc style comment
@@ -48,7 +48,7 @@
 // jsDocMultiLine();
 // ^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMultiLine(): void
 // | ```
 // | this is multiple line jsdoc stule comment
@@ -66,7 +66,7 @@
 // jsDocMultiLineMerge();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMultiLineMerge(): void
 // | ```
 // | Another this one too
@@ -80,7 +80,7 @@
 // jsDocMixedComments1();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMixedComments1(): void
 // | ```
 // | jsdoc comment
@@ -93,7 +93,7 @@
 // jsDocMixedComments2();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMixedComments2(): void
 // | ```
 // | another jsDocComment
@@ -106,7 +106,7 @@
 // jsDocMixedComments3();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMixedComments3(): void
 // | ```
 // | * triplestar jsDocComment
@@ -120,7 +120,7 @@
 // jsDocMixedComments4();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMixedComments4(): void
 // | ```
 // | another jsDocComment
@@ -135,7 +135,7 @@
 // jsDocMixedComments5();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMixedComments5(): void
 // | ```
 // | another jsDocComment
@@ -151,7 +151,7 @@
 // jsDocMixedComments6();
 // ^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocMixedComments6(): void
 // | ```
 // | jsdoc comment
@@ -163,7 +163,7 @@
 // noHelpComment1();
 // ^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function noHelpComment1(): void
 // | ```
 // | 
@@ -175,7 +175,7 @@
 // noHelpComment2();
 // ^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function noHelpComment2(): void
 // | ```
 // | 
@@ -186,7 +186,7 @@
 // noHelpComment3();
 // ^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function noHelpComment3(): void
 // | ```
 // | 
@@ -198,7 +198,7 @@
 // function sum(a: number, b: number) {
 //              ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | first number
@@ -206,7 +206,7 @@
 // | ----------------------------------------------------------------------
 //                         ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: number
 // | ```
 // | second number
@@ -217,7 +217,7 @@
 // sum(10, 20);
 // ^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function sum(a: number, b: number): number
 // | ```
 // | Adds two integers and returns the result
@@ -238,7 +238,7 @@
 // function multiply(a: number, b: number, c?: number, d?, e?) {
 //                   ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | first number
@@ -246,28 +246,28 @@
 // | ----------------------------------------------------------------------
 //                              ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: number
 // | ```
 // | 
 // | ----------------------------------------------------------------------
 //                                         ^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) c: number
+// | ```typescript
+// | (parameter) c: number | undefined
 // | ```
 // | 
 // | ----------------------------------------------------------------------
 //                                                     ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) d: any
 // | ```
 // | 
 // | ----------------------------------------------------------------------
 //                                                         ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) e: any
 // | ```
 // | LastParam 
@@ -276,7 +276,7 @@
 // multiply(10, 20, 30, 40, 50);
 // ^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
 // | ```
 // | This is multiplication function
@@ -304,7 +304,7 @@
 // function f1(a: number);
 //             ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | 
@@ -312,9 +312,10 @@
 // function f1(b: string);
 //             ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: string
 // | ```
+// | about b
 // | 
 // | ----------------------------------------------------------------------
 // /**@param opt optional parameter*/
@@ -324,7 +325,7 @@
 // f1(10);
 // ^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function f1(a: number): any
 // | ```
 // | fn f1 with number
@@ -335,9 +336,12 @@
 // f1("hello");
 // ^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function f1(b: string): any
 // | ```
+// | fn f1 with number
+// | 
+// | *@param* `b` — about b
 // | 
 // | ----------------------------------------------------------------------
 // 
@@ -352,14 +356,14 @@
 // function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string) {
 //                   ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | 
 // | ----------------------------------------------------------------------
 //                              ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: number
 // | ```
 // | this is about b
@@ -367,32 +371,32 @@
 // | ----------------------------------------------------------------------
 //                                         ^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) c: () => string
+// | ```typescript
+// | (parameter) c: (() => string) | undefined
 // | ```
 // | this is optional param c
 // | 
 // | ----------------------------------------------------------------------
 //                                                           ^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) d: () => string
+// | ```typescript
+// | (parameter) d: (() => string) | undefined
 // | ```
 // | this is optional param d
 // | 
 // | ----------------------------------------------------------------------
 //                                                                             ^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) e: () => string
+// | ```typescript
+// | (parameter) e: (() => string) | undefined
 // | ```
 // | this is optional param e
 // | 
 // | ----------------------------------------------------------------------
 //                                                                                               ^
 // | ----------------------------------------------------------------------
-// | ```tsx
-// | (parameter) f: () => string
+// | ```typescript
+// | (parameter) f: (() => string) | undefined
 // | ```
 // | 
 // | ----------------------------------------------------------------------
@@ -400,7 +404,7 @@
 // subtract(10,  20,  null,  null,  null, null);
 // ^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
 // | ```
 // | This is subtract function
@@ -430,7 +434,7 @@
 // function square(a: number) {
 //                 ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | this is input number
@@ -441,7 +445,7 @@
 // square(10);
 // ^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function square(a: number): number
 // | ```
 // | this is square function
@@ -463,7 +467,7 @@
 // function divide(a: number, b: number) {
 //                 ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | this is a
@@ -471,7 +475,7 @@
 // | ----------------------------------------------------------------------
 //                            ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: number
 // | ```
 // | this is b
@@ -481,7 +485,7 @@
 // divide(10, 20);
 // ^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function divide(a: number, b: number): void
 // | ```
 // | this is divide function
@@ -503,7 +507,7 @@
 // function fooBar(foo: string, bar: string) {
 //                 ^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) foo: string
 // | ```
 // | is string
@@ -511,7 +515,7 @@
 // | ----------------------------------------------------------------------
 //                              ^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) bar: string
 // | ```
 // | is second string
@@ -522,7 +526,7 @@
 // fooBar("foo","bar");
 // ^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function fooBar(foo: string, bar: string): string
 // | ```
 // | Function returns string concat of foo and bar
@@ -546,21 +550,21 @@
 // function jsDocParamTest(/** this is inline comment for a */a: number, /** this is inline comment for b*/ b: number, c: number, d: number) {
 //                                                            ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: number
 // | ```
 // | this is inline comment for a
 // | ----------------------------------------------------------------------
 //                                                                                                          ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: number
 // | ```
 // | this is inline comment for b
 // | ----------------------------------------------------------------------
 //                                                                                                                     ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) c: number
 // | ```
 // | it is third parameter
@@ -568,7 +572,7 @@
 // | ----------------------------------------------------------------------
 //                                                                                                                                ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) d: number
 // | ```
 // | 
@@ -578,7 +582,7 @@
 // jsDocParamTest(30, 40, 50, 60);
 // ^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | ```
 // | this is jsdoc style function with param tag as well as inline parameter help
@@ -597,7 +601,7 @@
 // jsDocCommentAlignmentTest1();
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocCommentAlignmentTest1(): void
 // | ```
 // | This is function comment
@@ -611,7 +615,7 @@
 // jsDocCommentAlignmentTest2();
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocCommentAlignmentTest2(): void
 // | ```
 // | This is function comment
@@ -631,7 +635,7 @@
 // function jsDocCommentAlignmentTest3(a: string, b, c) {
 //                                     ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) a: string
 // | ```
 // | this is info about a
@@ -640,7 +644,7 @@
 // | ----------------------------------------------------------------------
 //                                                ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) b: any
 // | ```
 // | this is info about b
@@ -651,7 +655,7 @@
 // | ----------------------------------------------------------------------
 //                                                   ^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | (parameter) c: any
 // | ```
 // | this is info about b
@@ -662,7 +666,7 @@
 // jsDocCommentAlignmentTest3("hello",1, 2);
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | function jsDocCommentAlignmentTest3(a: string, b: any, c: any): void
 // | ```
 // | This is function comment
@@ -690,7 +694,7 @@
 // class NoQuickInfoClass {
 //       ^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | ```tsx
+// | ```typescript
 // | class NoQuickInfoClass
 // | ```
 // | 
@@ -710,7 +714,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction simple(): void\n```\n"
+        "value": "```typescript\nfunction simple(): void\n```\n"
       },
       "range": {
         "start": {
@@ -737,7 +741,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction multiLine(): void\n```\n"
+        "value": "```typescript\nfunction multiLine(): void\n```\n"
       },
       "range": {
         "start": {
@@ -764,7 +768,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocSingleLine(): void\n```\nthis is eg of single line jsdoc style comment"
+        "value": "```typescript\nfunction jsDocSingleLine(): void\n```\nthis is eg of single line jsdoc style comment"
       },
       "range": {
         "start": {
@@ -791,7 +795,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMultiLine(): void\n```\nthis is multiple line jsdoc stule comment\nNew line1\nNew Line2"
+        "value": "```typescript\nfunction jsDocMultiLine(): void\n```\nthis is multiple line jsdoc stule comment\nNew line1\nNew Line2"
       },
       "range": {
         "start": {
@@ -818,7 +822,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMultiLineMerge(): void\n```\nAnother this one too"
+        "value": "```typescript\nfunction jsDocMultiLineMerge(): void\n```\nAnother this one too"
       },
       "range": {
         "start": {
@@ -845,7 +849,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMixedComments1(): void\n```\njsdoc comment"
+        "value": "```typescript\nfunction jsDocMixedComments1(): void\n```\njsdoc comment"
       },
       "range": {
         "start": {
@@ -872,7 +876,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMixedComments2(): void\n```\nanother jsDocComment"
+        "value": "```typescript\nfunction jsDocMixedComments2(): void\n```\nanother jsDocComment"
       },
       "range": {
         "start": {
@@ -899,7 +903,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMixedComments3(): void\n```\n* triplestar jsDocComment"
+        "value": "```typescript\nfunction jsDocMixedComments3(): void\n```\n* triplestar jsDocComment"
       },
       "range": {
         "start": {
@@ -926,7 +930,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMixedComments4(): void\n```\nanother jsDocComment"
+        "value": "```typescript\nfunction jsDocMixedComments4(): void\n```\nanother jsDocComment"
       },
       "range": {
         "start": {
@@ -953,7 +957,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMixedComments5(): void\n```\nanother jsDocComment"
+        "value": "```typescript\nfunction jsDocMixedComments5(): void\n```\nanother jsDocComment"
       },
       "range": {
         "start": {
@@ -980,7 +984,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocMixedComments6(): void\n```\njsdoc comment"
+        "value": "```typescript\nfunction jsDocMixedComments6(): void\n```\njsdoc comment"
       },
       "range": {
         "start": {
@@ -1007,7 +1011,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction noHelpComment1(): void\n```\n"
+        "value": "```typescript\nfunction noHelpComment1(): void\n```\n"
       },
       "range": {
         "start": {
@@ -1034,7 +1038,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction noHelpComment2(): void\n```\n"
+        "value": "```typescript\nfunction noHelpComment2(): void\n```\n"
       },
       "range": {
         "start": {
@@ -1061,7 +1065,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction noHelpComment3(): void\n```\n"
+        "value": "```typescript\nfunction noHelpComment3(): void\n```\n"
       },
       "range": {
         "start": {
@@ -1088,7 +1092,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\nfirst number\n"
+        "value": "```typescript\n(parameter) a: number\n```\nfirst number\n"
       },
       "range": {
         "start": {
@@ -1115,7 +1119,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: number\n```\nsecond number\n"
+        "value": "```typescript\n(parameter) b: number\n```\nsecond number\n"
       },
       "range": {
         "start": {
@@ -1142,7 +1146,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction sum(a: number, b: number): number\n```\nAdds two integers and returns the result\n\n*@param* `a` — first number\n\n\n*@param* `b` — second number\n"
+        "value": "```typescript\nfunction sum(a: number, b: number): number\n```\nAdds two integers and returns the result\n\n*@param* `a` — first number\n\n\n*@param* `b` — second number\n"
       },
       "range": {
         "start": {
@@ -1169,7 +1173,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\nfirst number\n"
+        "value": "```typescript\n(parameter) a: number\n```\nfirst number\n"
       },
       "range": {
         "start": {
@@ -1196,7 +1200,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: number\n```\n"
+        "value": "```typescript\n(parameter) b: number\n```\n"
       },
       "range": {
         "start": {
@@ -1223,7 +1227,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) c: number\n```\n"
+        "value": "```typescript\n(parameter) c: number | undefined\n```\n"
       },
       "range": {
         "start": {
@@ -1250,7 +1254,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) d: any\n```\n"
+        "value": "```typescript\n(parameter) d: any\n```\n"
       },
       "range": {
         "start": {
@@ -1277,7 +1281,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) e: any\n```\nLastParam "
+        "value": "```typescript\n(parameter) e: any\n```\nLastParam "
       },
       "range": {
         "start": {
@@ -1304,7 +1308,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction multiply(a: number, b: number, c?: number, d?: any, e?: any): void\n```\nThis is multiplication function\n\n*@param* ``\n\n*@param* `a` — first number\n\n\n*@param* `b`\n\n*@param* `c`\n\n*@param* `d`\n\n*@anotherTag*\n\n*@param* `e` — LastParam \n\n*@anotherTag*"
+        "value": "```typescript\nfunction multiply(a: number, b: number, c?: number, d?: any, e?: any): void\n```\nThis is multiplication function\n\n*@param* ``\n\n*@param* `a` — first number\n\n\n*@param* `b`\n\n*@param* `c`\n\n*@param* `d`\n\n*@anotherTag*\n\n*@param* `e` — LastParam \n\n*@anotherTag*"
       },
       "range": {
         "start": {
@@ -1331,7 +1335,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\n"
+        "value": "```typescript\n(parameter) a: number\n```\n"
       },
       "range": {
         "start": {
@@ -1358,7 +1362,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: string\n```\n"
+        "value": "```typescript\n(parameter) b: string\n```\nabout b\n"
       },
       "range": {
         "start": {
@@ -1385,7 +1389,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction f1(a: number): any\n```\nfn f1 with number\n\n*@param* `b` — about b\n"
+        "value": "```typescript\nfunction f1(a: number): any\n```\nfn f1 with number\n\n*@param* `b` — about b\n"
       },
       "range": {
         "start": {
@@ -1412,7 +1416,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction f1(b: string): any\n```\n"
+        "value": "```typescript\nfunction f1(b: string): any\n```\nfn f1 with number\n\n*@param* `b` — about b\n"
       },
       "range": {
         "start": {
@@ -1439,7 +1443,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\n"
+        "value": "```typescript\n(parameter) a: number\n```\n"
       },
       "range": {
         "start": {
@@ -1466,7 +1470,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: number\n```\nthis is about b\n"
+        "value": "```typescript\n(parameter) b: number\n```\nthis is about b\n"
       },
       "range": {
         "start": {
@@ -1493,7 +1497,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) c: () => string\n```\nthis is optional param c\n"
+        "value": "```typescript\n(parameter) c: (() => string) | undefined\n```\nthis is optional param c\n"
       },
       "range": {
         "start": {
@@ -1520,7 +1524,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) d: () => string\n```\nthis is optional param d\n"
+        "value": "```typescript\n(parameter) d: (() => string) | undefined\n```\nthis is optional param d\n"
       },
       "range": {
         "start": {
@@ -1547,7 +1551,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) e: () => string\n```\nthis is optional param e\n"
+        "value": "```typescript\n(parameter) e: (() => string) | undefined\n```\nthis is optional param e\n"
       },
       "range": {
         "start": {
@@ -1574,7 +1578,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) f: () => string\n```\n"
+        "value": "```typescript\n(parameter) f: (() => string) | undefined\n```\n"
       },
       "range": {
         "start": {
@@ -1601,7 +1605,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void\n```\nThis is subtract function\n\n*@param* ``\n\n*@param* `b` — this is about b\n\n\n*@param* `c` — this is optional param c\n\n\n*@param* `d` — this is optional param d\n\n\n*@param* `e` — this is optional param e\n\n\n*@param* `` — { () => string; } } f this is optional param f\n"
+        "value": "```typescript\nfunction subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void\n```\nThis is subtract function\n\n*@param* ``\n\n*@param* `b` — this is about b\n\n\n*@param* `c` — this is optional param c\n\n\n*@param* `d` — this is optional param d\n\n\n*@param* `e` — this is optional param e\n\n\n*@param* `` — { () => string; } } f this is optional param f\n"
       },
       "range": {
         "start": {
@@ -1628,7 +1632,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\nthis is input number\n"
+        "value": "```typescript\n(parameter) a: number\n```\nthis is input number\n"
       },
       "range": {
         "start": {
@@ -1655,7 +1659,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction square(a: number): number\n```\nthis is square function\n\n*@paramTag* — { number } a this is input number of paramTag\n\n\n*@param* `a` — this is input number\n\n\n*@returnType* — { number } it is return type\n"
+        "value": "```typescript\nfunction square(a: number): number\n```\nthis is square function\n\n*@paramTag* — { number } a this is input number of paramTag\n\n\n*@param* `a` — this is input number\n\n\n*@returnType* — { number } it is return type\n"
       },
       "range": {
         "start": {
@@ -1682,7 +1686,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\nthis is a\n"
+        "value": "```typescript\n(parameter) a: number\n```\nthis is a\n"
       },
       "range": {
         "start": {
@@ -1709,7 +1713,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: number\n```\nthis is b\n"
+        "value": "```typescript\n(parameter) b: number\n```\nthis is b\n"
       },
       "range": {
         "start": {
@@ -1736,7 +1740,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction divide(a: number, b: number): void\n```\nthis is divide function\n\n*@param* `a` — this is a\n\n\n*@paramTag* — { number } g this is optional param g\n\n\n*@param* `b` — this is b\n"
+        "value": "```typescript\nfunction divide(a: number, b: number): void\n```\nthis is divide function\n\n*@param* `a` — this is a\n\n\n*@paramTag* — { number } g this is optional param g\n\n\n*@param* `b` — this is b\n"
       },
       "range": {
         "start": {
@@ -1763,7 +1767,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) foo: string\n```\nis string\n"
+        "value": "```typescript\n(parameter) foo: string\n```\nis string\n"
       },
       "range": {
         "start": {
@@ -1790,7 +1794,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) bar: string\n```\nis second string\n"
+        "value": "```typescript\n(parameter) bar: string\n```\nis second string\n"
       },
       "range": {
         "start": {
@@ -1817,7 +1821,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction fooBar(foo: string, bar: string): string\n```\nFunction returns string concat of foo and bar\n\n*@param* `foo` — is string\n\n\n*@param* `bar` — is second string\n"
+        "value": "```typescript\nfunction fooBar(foo: string, bar: string): string\n```\nFunction returns string concat of foo and bar\n\n*@param* `foo` — is string\n\n\n*@param* `bar` — is second string\n"
       },
       "range": {
         "start": {
@@ -1844,7 +1848,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: number\n```\nthis is inline comment for a"
+        "value": "```typescript\n(parameter) a: number\n```\nthis is inline comment for a"
       },
       "range": {
         "start": {
@@ -1871,7 +1875,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: number\n```\nthis is inline comment for b"
+        "value": "```typescript\n(parameter) b: number\n```\nthis is inline comment for b"
       },
       "range": {
         "start": {
@@ -1898,7 +1902,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) c: number\n```\nit is third parameter\n"
+        "value": "```typescript\n(parameter) c: number\n```\nit is third parameter\n"
       },
       "range": {
         "start": {
@@ -1925,7 +1929,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) d: number\n```\n"
+        "value": "```typescript\n(parameter) d: number\n```\n"
       },
       "range": {
         "start": {
@@ -1952,7 +1956,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocParamTest(a: number, b: number, c: number, d: number): number\n```\nthis is jsdoc style function with param tag as well as inline parameter help\n\n*@param* `a` — it is first parameter\n\n\n*@param* `c` — it is third parameter\n"
+        "value": "```typescript\nfunction jsDocParamTest(a: number, b: number, c: number, d: number): number\n```\nthis is jsdoc style function with param tag as well as inline parameter help\n\n*@param* `a` — it is first parameter\n\n\n*@param* `c` — it is third parameter\n"
       },
       "range": {
         "start": {
@@ -1979,7 +1983,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocCommentAlignmentTest1(): void\n```\nThis is function comment\nAnd properly aligned comment"
+        "value": "```typescript\nfunction jsDocCommentAlignmentTest1(): void\n```\nThis is function comment\nAnd properly aligned comment"
       },
       "range": {
         "start": {
@@ -2006,7 +2010,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocCommentAlignmentTest2(): void\n```\nThis is function comment\n    And aligned with 4 space char margin"
+        "value": "```typescript\nfunction jsDocCommentAlignmentTest2(): void\n```\nThis is function comment\n    And aligned with 4 space char margin"
       },
       "range": {
         "start": {
@@ -2033,7 +2037,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) a: string\n```\nthis is info about a\nspanning on two lines and aligned perfectly\n"
+        "value": "```typescript\n(parameter) a: string\n```\nthis is info about a\nspanning on two lines and aligned perfectly\n"
       },
       "range": {
         "start": {
@@ -2060,7 +2064,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) b: any\n```\nthis is info about b\nspanning on two lines and aligned perfectly\nspanning one more line alined perfectly\n    spanning another line with more margin\n"
+        "value": "```typescript\n(parameter) b: any\n```\nthis is info about b\nspanning on two lines and aligned perfectly\nspanning one more line alined perfectly\n    spanning another line with more margin\n"
       },
       "range": {
         "start": {
@@ -2087,7 +2091,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\n(parameter) c: any\n```\nthis is info about b\nnot aligned text about parameter will eat only one space\n"
+        "value": "```typescript\n(parameter) c: any\n```\nthis is info about b\nnot aligned text about parameter will eat only one space\n"
       },
       "range": {
         "start": {
@@ -2114,7 +2118,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nfunction jsDocCommentAlignmentTest3(a: string, b: any, c: any): void\n```\nThis is function comment\n    And aligned with 4 space char margin\n\n*@param* `a` — this is info about a\nspanning on two lines and aligned perfectly\n\n\n*@param* `b` — this is info about b\nspanning on two lines and aligned perfectly\nspanning one more line alined perfectly\n    spanning another line with more margin\n\n\n*@param* `c` — this is info about b\nnot aligned text about parameter will eat only one space\n"
+        "value": "```typescript\nfunction jsDocCommentAlignmentTest3(a: string, b: any, c: any): void\n```\nThis is function comment\n    And aligned with 4 space char margin\n\n*@param* `a` — this is info about a\nspanning on two lines and aligned perfectly\n\n\n*@param* `b` — this is info about b\nspanning on two lines and aligned perfectly\nspanning one more line alined perfectly\n    spanning another line with more margin\n\n\n*@param* `c` — this is info about b\nnot aligned text about parameter will eat only one space\n"
       },
       "range": {
         "start": {
@@ -2153,7 +2157,7 @@
     "item": {
       "contents": {
         "kind": "markdown",
-        "value": "```tsx\nclass NoQuickInfoClass\n```\n"
+        "value": "```typescript\nclass NoQuickInfoClass\n```\n"
       },
       "range": {
         "start": {
@@ -2164,7 +2168,8 @@
           "line": 199,
           "character": 22
         }
-      }
+      },
+      "canIncreaseVerbosity": true
     }
   }
 ]
