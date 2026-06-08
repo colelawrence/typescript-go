@@ -22,6 +22,7 @@ defaults:
 
 jobs:
   build:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-latest
     steps:
       - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
@@ -70,6 +71,7 @@ jobs:
       - run: npx hereby native-preview:release --forRelease --setPrerelease dev.0.0
 
   extension:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -80,6 +82,7 @@ jobs:
       - run: npm run extension:build
 
   test:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -198,6 +201,7 @@ jobs:
           path: testdata/baselines/local
 
   lint:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     strategy:
       fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
@@ -249,6 +253,7 @@ jobs:
       - run: npx hereby lint
 
   format:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -260,6 +265,7 @@ jobs:
       - run: npx hereby check:format
 
   generate:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-latest
     steps:
       - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
@@ -301,6 +307,7 @@ jobs:
       - run: git diff --staged --exit-code --stat
 
   tidy:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -310,6 +317,7 @@ jobs:
       - run: go -C ./_tools mod tidy -diff
 
   smoke:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-latest
     steps:
       - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
@@ -343,6 +351,7 @@ jobs:
       - run: ./built/local/tsgo -p ./_submodules/TypeScript/src/compiler
 
   misc:
+    if: ${{ github.repository == 'microsoft/typescript-go' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -357,7 +366,7 @@ jobs:
 
   required:
     runs-on: ubuntu-slim
-    if: ${{ always() }}
+    if: ${{ always() && github.repository == 'microsoft/typescript-go' }}
     needs:
       - build
       - release-build
