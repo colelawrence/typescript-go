@@ -1,0 +1,143 @@
+name: Release patched tsgo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release.yml
+      - cmd/**
+      - internal/**
+      - go.mod
+      - go.sum
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  version:
+    if: ${{ github.repository == 'colelawrence/typescript-go' }}
+    runs-on: ubuntu-latest
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+    steps:
+      - id: version
+        run: |
+          version="7.0.0-dev.$(date -u +%Y%m%d).${{ github.run_number }}"
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "version=$version"
+
+  build:
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: darwin
+            goarch: arm64
+            platform: macos-arm64
+          - goos: darwin
+            goarch: amd64
+            platform: macos-x64
+          - goos: linux
+            goarch: amd64
+            platform: linux-x64
+          - goos: linux
+            goarch: arm64
+            platform: linux-arm64
+          - goos: windows
+            goarch: amd64
+            platform: windows-x64
+            exe: .exe
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 'lts/*'
+      - uses: ./.github/actions/setup-go
+
+      - run: npm ci
+
+      - name: Build tsgo for ${{ matrix.platform }}
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+          VERSION: ${{ needs.version.outputs.value }}
+          PLATFORM: ${{ matrix.platform }}
+          EXE: ${{ matrix.exe }}
+        run: |
+          package_dir="dist/tsgo-$PLATFORM"
+          mkdir -p "$package_dir"
+
+          go build \
+            -trimpath \
+            -tags=noembed,release \
+            -ldflags="-s -w -X github.com/microsoft/typescript-go/internal/core.version=$VERSION" \
+            -o "$package_dir/tsgo$EXE" \
+            ./cmd/tsgo
+
+          cp internal/bundled/libs/*.d.ts "$package_dir/"
+          tar -czf "dist/tsgo-$PLATFORM.tar.gz" -C "$package_dir" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsgo-${{ matrix.platform }}
+          path: dist/tsgo-${{ matrix.platform }}.tar.gz
+          if-no-files-found: error
+
+  release:
+    needs:
+      - version
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: tsgo-*
+          merge-multiple: true
+
+      - name: Generate checksums and release notes
+        env:
+          VERSION: ${{ needs.version.outputs.value }}
+          SHA: ${{ github.sha }}
+        run: |
+          cd dist
+          sha256sum tsgo-*.tar.gz > checksums.txt
+          {
+            echo "Patched TypeScript Go binaries."
+            echo
+            echo "Version: $VERSION"
+            echo "Commit: $SHA"
+            echo
+            echo "Patch: declaration portability diagnostics are disabled."
+            echo
+            echo "## Checksums"
+            echo
+            echo '```text'
+            cat checksums.txt
+            echo '```'
+          } > release-notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.value }}
+          name: tsgo ${{ needs.version.outputs.value }}
+          body_path: dist/release-notes.md
+          files: |
+            dist/tsgo-*.tar.gz
+            dist/checksums.txt
+          prerelease: true

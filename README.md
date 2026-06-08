@@ -1,3 +1,11 @@
+# TypeScript Go - Patched Fork
+
+This fork tracks [microsoft/typescript-go](https://github.com/microsoft/typescript-go) with one behavior patch: declaration portability diagnostics such as TS2742/TS2883 are disabled for inferred declaration emit.
+
+Prebuilt `tsgo` binaries are published from this fork's GitHub Releases. The latest release uses stable asset names such as `tsgo-macos-arm64.tar.gz`, `tsgo-linux-x64.tar.gz`, and `tsgo-windows-x64.tar.gz`.
+
+---
+
 # TypeScript 7
 
 [Not sure what this is? Read the announcement post!](https://devblogs.microsoft.com/typescript/typescript-native-port/)
