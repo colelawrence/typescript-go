@@ -56,7 +56,7 @@ export const ADMIN = MetadataAccessor.create<boolean>('1');
 }
 
 tsgo -p pkg3 --explainFiles
-ExitStatus:: DiagnosticsPresent_OutputsGenerated
+ExitStatus:: DiagnosticsPresent_OutputsSkipped
 Output::
 [96mpkg3/tsconfig.json[0m:[93m5[0m:[93m19[0m - [91merror[0m[90m TS5108: [0mOption 'target=ES5' has been removed. Please remove it from your configuration.
 
@@ -125,10 +125,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./keys"), exports);
-
-//// [/user/username/projects/myproject/pkg3/dist/keys.d.ts] *new* 
-import { MetadataAccessor } from "@raymondfeng/pkg2";
-export declare const ADMIN: any;
 
 //// [/user/username/projects/myproject/pkg3/dist/keys.js] *new* 
 "use strict";

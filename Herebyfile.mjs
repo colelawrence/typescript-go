@@ -323,6 +323,7 @@ const enumDefs = [
     { name: "OuterExpressionKinds", goPrefix: "OEK", goFile: "internal/ast/utilities.go", outDir: "_packages/native-preview/src/enums" },
     { name: "ModifierFlags", goPrefix: "ModifierFlags", goFile: "internal/ast/modifierflags.go", outDir: "_packages/native-preview/src/enums" },
     { name: "TokenFlags", goPrefix: "TokenFlags", goFile: "internal/ast/tokenflags.go", outDir: "_packages/native-preview/src/enums", constEnum: true },
+    { name: "NodeBuilderFlags", goPrefix: "Flags", goFile: "internal/nodebuilder/types.go", outDir: "_packages/native-preview/src/enums" },
 ];
 
 /**
@@ -1765,8 +1766,13 @@ async function runPackNativePreviewPackages() {
         mainNativePreviewPackage.npmTarball,
     ].map(p => path.basename(p));
 
-    const publishOrderPath = path.join(builtNpm, "publish-order.txt");
-    await fs.promises.writeFile(publishOrderPath, publishOrder.join("\n") + "\n");
+    const publishManifest = publishOrder.map(pkg => ({
+        filename: pkg,
+        tag: "latest",
+    }));
+
+    const publishOrderPath = path.join(builtNpm, "publish-order.json");
+    await fs.promises.writeFile(publishOrderPath, JSON.stringify(publishManifest, undefined, 4) + "\n");
 }
 
 export const packNativePreviewExtensions = task({
